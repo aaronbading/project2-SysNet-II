@@ -1,10 +1,11 @@
 #include "Clienthelper.h"
 ClientHelper::ClientHelper()
 {
+    connection();
     // decided to develop the TcpClient class. This will contain a connection, SendData and Receive functions.
-connection();
 while (!toggle)
 { 
+
     sendData(); 
     receive();
     /* code */
@@ -30,13 +31,20 @@ void ClientHelper::connection()
 void ClientHelper::sendData()
 {
     bzero(buffer, 256);
-    // fgets(buffer, 255, stdin);
-    cin >> buffer;
-    if(!strcmp(buffer,"q"))
+     fgets(buffer, 255, stdin);
+    //cin >> buffer;
+    if(!strcmp(buffer,"quit"))
     {
         cout <<"quitting" << endl;
         toggle=1;
     }
+    // char str[260];
+    // bzero(str, 256);
+
+    // int size = strlen(buffer)-1; // one less since we are writing a space 
+    // sprintf( str, "%d ", size );
+    // strcat(str, buffer);
+    // change the message to str......
     if (write(socketfiledescriptor, buffer, strlen(buffer)) < 0)
         perror("ERROR writing to socket");
 
@@ -46,5 +54,12 @@ void ClientHelper::receive()
 {
     if (read(socketfiledescriptor, buffer, 255) < 0)
         perror("ERROR reading from socket");
+      for(long unsigned int i = 0; i< strlen(buffer); i++)
+           {
+               if(buffer[i] =='\n')
+               {
+                   buffer[i] = ' ';
+               }
+           }
     printf("%s\n", buffer);
 }

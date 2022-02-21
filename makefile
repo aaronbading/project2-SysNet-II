@@ -16,9 +16,9 @@ SERVEROBJECTS = $(SERVERSOURCES:.cpp=.o)
 all: $(TARGET1) $(TARGET2)
 
 $(TARGET1): $(CLIENTOBJECTS)
-	$(CC) -o $(TARGET1) $(CLIENTOBJECTS) $(LDLIBS)
+	$(CC) -pthread -lpthread -o $(TARGET1) $(CLIENTOBJECTS) $(LDLIBS)
 $(TARGET2): $(SERVEROBJECTS)
-	$(CC) -o $(TARGET2) $(SERVEROBJECTS) $(LDLIBS)
+	$(CC) -pthread -lpthread -o $(TARGET2) $(SERVEROBJECTS) $(LDLIBS)
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@ 

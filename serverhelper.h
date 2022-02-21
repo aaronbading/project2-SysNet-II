@@ -14,12 +14,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/sendfile.h>
 #include <sys/stat.h>
+#include <thread>
+#include <vector>
+#include <string.h>
 using namespace std;
 
 #define PORT 60049 // defining a  port in range 60001 – 60099
@@ -27,16 +29,17 @@ using namespace std;
 class ServerHelper
 {
 public:
-    ServerHelper();                                     /*** Initial setup consturctor.*/
+    ServerHelper(); /*** Initial setup consturctor.*/
     void start();
-void sendresponse(void *message, int msglen , int created_socket);
-void communicate();
-
+    void sendresponse(void *message, int msglen, int created_socket);
+    void acceptUser(int thesocket);
+    void statechange(char* message);
 private:
-    int server_filedescriptor, created_socket;  
+    int server_filedescriptor, created_socket;
     long readvalue;
-    struct sockaddr_in mysocketaddress , clientaddress; // socket address struck defined in in.h
+    struct sockaddr_in mysocketaddress, clientaddress; // socket address struck defined in in.h
     int addresslength = sizeof(mysocketaddress);
-    int val=1;
+    char buffer[256];
+    
 };
 #endif

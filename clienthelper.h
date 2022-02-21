@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <netdb.h>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
