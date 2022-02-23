@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <ctype.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <sys/sendfile.h>
+//#include <sys/types.h>
+//#include <fcntl.h>
+//#include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <thread>
 #include <vector>
@@ -34,16 +34,19 @@ public:
     ServerHelper(); /*** Initial setup consturctor.*/
     void start();
     void sendresponse(void *message, int msglen, int created_socket);
-    void acceptUser();
     void statechange(char* message);
+    void acceptUser();
+    void DisplayMenu(int temp, int choice);
+
 private:
     int server_filedescriptor, created_socket;
     long readvalue;
     struct sockaddr_in mysocketaddress, clientaddress; // socket address struck defined in in.h
     int addresslength = sizeof(mysocketaddress);
     char buffer[256];
-
+char loginmenu[82];
     int mytempsocket;
+
 
 };
 #endif

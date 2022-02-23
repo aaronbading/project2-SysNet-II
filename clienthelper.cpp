@@ -1,9 +1,16 @@
 #include "Clienthelper.h"
 ClientHelper::ClientHelper()
 {
+    toggle =0;
     connection();                                  // create the connection
     thread mythread(&ClientHelper::receive, this); // create a receiver thread
 
+    //****//
+    //     bzero(inputbuffer, 500);
+    //  if (read(socketfiledescriptor, inputbuffer, 500) < 0)
+    //         perror("ERROR reading from socket");
+    //     printf("%s\n", inputbuffer);
+    //***///
     while (!toggle)
     {
         sendData();                                // send data 
@@ -26,10 +33,10 @@ void ClientHelper::connection()
 }
 void ClientHelper::sendData()
 {
-    bzero(buffer, 256);
-    fgets(buffer, 255, stdin);
+    bzero(outputbuffer, 500);
+    fgets(outputbuffer, 500, stdin);
 
-    if (!strcmp(buffer, "quit\n"))
+    if (!strcmp(outputbuffer, "quit\n"))
     {
         cout << "quitting" << endl;
         toggle = 1;
@@ -40,25 +47,19 @@ void ClientHelper::sendData()
     // sprintf( str, "%d ", size );
     // strcat(str, buffer);
     // change the message to str......
-    
-    if (write(socketfiledescriptor, buffer, strlen(buffer)) < 0)
+
+    if (write(socketfiledescriptor, outputbuffer, strlen(outputbuffer)) < 0)
         perror("ERROR writing to socket");
 
-    bzero(buffer, 256);
 }
 void ClientHelper::receive()
 {
     while (!toggle)
     {
-        if (read(socketfiledescriptor, buffer, 255) < 0)
+        if (read(socketfiledescriptor, inputbuffer, 500) < 0)
             perror("ERROR reading from socket");
-        for (long unsigned int i = 0; i < strlen(buffer); i++)
-        {
-            if (buffer[i] == '\n')
-            {
-                buffer[i] = ' ';
-            }
-        }
-        printf("%s\n", buffer);
+        printf("%s\n", inputbuffer);
+        bzero(inputbuffer, 500);
+
     }
 }

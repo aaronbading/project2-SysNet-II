@@ -39,7 +39,8 @@ private:
     int socketfiledescriptor, n;
     struct sockaddr_in server_address;
     struct hostent *server;
-    char buffer[256];
-    int toggle =0;
+    char inputbuffer[500];
+    char outputbuffer[500];
+    int toggle ;
 };
 #endif

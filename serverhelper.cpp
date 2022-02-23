@@ -34,6 +34,7 @@ ServerHelper::ServerHelper()
 
 void ServerHelper::start()
 {
+    cout << "Waiting for Incoming connections " << endl;
     while (1)
     {
         // listen tells the socket to listen for incoming connections
@@ -53,7 +54,6 @@ void ServerHelper::start()
         thread mythread (&ServerHelper::acceptUser, this);
         mythread.detach();
 
-        cout << "PARENT after threading  now im ready again " << endl;
     }
     close(server_filedescriptor);
 }
@@ -71,37 +71,55 @@ void ServerHelper::sendresponse(void *message, int msglen, int created_socket)
     }
 }
 
-void ServerHelper::acceptUser()
+void ServerHelper::statechange(char *message)
 {
-
+}
+void ServerHelper::acceptUser()
+{// thread function 
     int thesocket = this->mytempsocket;
-    // seperate process  just called this
-    char themessage[256];
+    char receivedmessage[56];
     char mymessage[50];
-    bzero(mymessage, 256);
-    bzero(themessage, 256);
-    strcpy(mymessage, "Server received message");
-    // sendresponse("Hello, world!\n",13,created_socket);
-    while (strcmp(themessage, "quit\n"))
+    bzero(mymessage, 56);
+    strcpy(mymessage, "Server received message\n\n");
+    
+    DisplayMenu(thesocket,0);
+
+    while (strcmp(receivedmessage, "quit\n"))
     { // while exit hasnt been typed in
-        bzero(themessage, 256);
-        if (recv(thesocket, themessage, 255, 0) < 0)
+        bzero(receivedmessage, 56);
+        if (read(thesocket, receivedmessage, 56) < 0)
         {
             perror("Error occured in reading");
         }
 
-        // send(thesocket, themessage, strlen(themessage)+1, 0);
-        cout << "Money : " << themessage << endl;
-        send(thesocket, mymessage, strlen(mymessage) + 1, 0);
-        statechange(themessage);
-        // communicate(thesocket);
+        // send(thesocket, receivedmessage, strlen(receivedmessage)+1, 0); // echo the message
+        cout << "Received message from socket :  " << thesocket  << " is " << receivedmessage << endl;
+        //send(thesocket, mymessage, strlen(mymessage) + 1, 0);
+        
+        DisplayMenu(thesocket,1);
+        statechange(receivedmessage);
     }
 
     cout << "at the end..." << endl;
     close(thesocket);
 }
-
-void ServerHelper::statechange(char *message)
+// Display Menu function called by threads .. takes in temp which is the socket and choice .. 
+void ServerHelper::DisplayMenu(int temp, int choice)
 {
+    bzero(loginmenu, 82);
+    strcpy(loginmenu, "Welcome! \n\n Press 1 to Login \n Press 2 to Register \n Type 'quit' to Quit ");
+
+    switch (choice)
+    {
+    case 0://welcome message
+        send(temp, "Connected , Press Enter To Continue\n",38,0);
+        break;
+    case 1:
+        send(temp, loginmenu, 82,0);
+        break;
+    default:
+        break;
+    }
+
 }
 
