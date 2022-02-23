@@ -71,19 +71,68 @@ void ServerHelper::sendresponse(void *message, int msglen, int created_socket)
     }
 }
 
-void ServerHelper::statechange(char *message)
+void ServerHelper::statechange(char *message , int mysocket)
 {
+        char statechangereceivedmessage[56];
+        char statechangereceivedusername[56];
+        char statechangereceivedpassword[56];
+ string username, password;
+    stringstream str;
+    str << message;
+    int choice;
+    str >> choice;
+    switch (choice)
+    {
+        case 0:
+        break;
+    case 1:// Login Choice
+        cout << " choice is 1 " << endl;
+        // bzero(statechangereceivedmessage, 56);
+        // if (read(mysocket, statechangereceivedmessage, 56) < 0)
+        // {
+        //     perror("Error occured in reading");
+        // }
+        // cout << "Received message from socket :  " << mysocket  << " is " << statechangereceivedmessage << endl;
+        send(mysocket, "Username \n",12,0); // prompt username
+
+        bzero(statechangereceivedusername, 56); // receive message 
+        if (read(mysocket, statechangereceivedusername, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+         username= statechangereceivedusername;
+        cout << "User name Received " <<statechangereceivedusername << endl;
+        
+        send(mysocket, "Password \n",12,0); // prompt password
+
+        bzero(statechangereceivedpassword, 56); // receive message 
+        if (read(mysocket, statechangereceivedpassword, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+         password= statechangereceivedpassword;
+        cout << "Password Received" <<statechangereceivedpassword << endl; 
+
+        //TODO .. check if this is already present .. 
+        
+        break;
+    case 2: // Register Choice 
+        cout << " choice is 2 " << endl;
+        break;
+    default:
+        break;
+    }
+
 }
 void ServerHelper::acceptUser()
 {// thread function 
     int thesocket = this->mytempsocket;
-    char receivedmessage[56];
     char mymessage[50];
     bzero(mymessage, 56);
     strcpy(mymessage, "Server received message\n\n");
     
     DisplayMenu(thesocket,0);
-
+  DisplayMenu(thesocket,1);
     while (strcmp(receivedmessage, "quit\n"))
     { // while exit hasnt been typed in
         bzero(receivedmessage, 56);
@@ -96,8 +145,9 @@ void ServerHelper::acceptUser()
         cout << "Received message from socket :  " << thesocket  << " is " << receivedmessage << endl;
         //send(thesocket, mymessage, strlen(mymessage) + 1, 0);
         
+        
+        statechange(receivedmessage , thesocket);
         DisplayMenu(thesocket,1);
-        statechange(receivedmessage);
     }
 
     cout << "at the end..." << endl;
@@ -112,9 +162,12 @@ void ServerHelper::DisplayMenu(int temp, int choice)
     switch (choice)
     {
     case 0://welcome message
-        send(temp, "Connected , Press Enter To Continue\n",38,0);
+        send(temp, "Connected , Menu is displayed below\n",38,0);
         break;
     case 1:
+        send(temp, loginmenu, 82,0);
+        break;
+    case 2:
         send(temp, loginmenu, 82,0);
         break;
     default:

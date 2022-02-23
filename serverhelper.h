@@ -23,7 +23,9 @@
 #include <vector>
 #include <string.h>
 #include <pthread.h>
-
+#include <sstream>
+#include <fstream>
+#include <cstring>
 using namespace std;
 
 #define PORT 60049 // defining a  port in range 60001 – 60099
@@ -34,7 +36,7 @@ public:
     ServerHelper(); /*** Initial setup consturctor.*/
     void start();
     void sendresponse(void *message, int msglen, int created_socket);
-    void statechange(char* message);
+    void statechange(char* message, int mysocket);
     void acceptUser();
     void DisplayMenu(int temp, int choice);
 
@@ -44,7 +46,8 @@ private:
     struct sockaddr_in mysocketaddress, clientaddress; // socket address struck defined in in.h
     int addresslength = sizeof(mysocketaddress);
     char buffer[256];
-char loginmenu[82];
+    char loginmenu[82];
+    char receivedmessage[56];
     int mytempsocket;
 
 
