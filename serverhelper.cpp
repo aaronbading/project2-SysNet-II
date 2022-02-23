@@ -2,18 +2,11 @@
 #include <string.h>
 ServerHelper::ServerHelper()
 {
-
-    // int sockfd, newsockfd, portno;
-    // socklen_t clilen;
-    // char buffer[256];
-    // struct sockaddr_in serv_addr, cli_addr;
-    // int n;
     if ((server_filedescriptor = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
         perror("Error occured in socket");
         exit(EXIT_FAILURE);
     }
-
     // clear address structure
     bzero((char *)&mysocketaddress, sizeof(mysocketaddress));
 
@@ -37,22 +30,10 @@ ServerHelper::ServerHelper()
 
     start(); // move forward
 
-    // send(created_socket, "Hello, world!\n", 13, 0);
-    // char buffer[256];
-    // int n;
-    // bzero(buffer, 256);
-
-    // if (read(created_socket, buffer, 255) < 0)
-    //     perror("ERROR reading from socket");
-    // printf("Here is the message: %s\n", buffer);
-
-    // close(created_socket);
-    // close(server_filedescriptor);
 }
+
 void ServerHelper::start()
 {
-    vector<thread> mythreads;
-
     while (1)
     {
         // listen tells the socket to listen for incoming connections
@@ -64,43 +45,15 @@ void ServerHelper::start()
             exit(EXIT_FAILURE);
         }
 
-        // thread th1(acceptUser());
-        // mythreads.push_back(th1);
-        // for(thread & th : mythreads)
-        // {
-        //     if(th.joinable())
-        //     th.join();
-        // }
-
-        // int tempsocket;
-        // if ((tempsocket = accept(server_filedescriptor, (struct sockaddr *)&mysocketaddress, (socklen_t *)&addresslength)) < 0)
-        // {
-        //     perror("Error occured in accept");
-        //     exit(EXIT_FAILURE);
-        // }
-        // printf("forking");
-        // if (fork() == 0)
-        // {
-        //     acceptUser(tempsocket);
-        //     exit(EXIT_SUCCESS);
-        // }
-        // create thread that calls that function
-        cout << " before accepting " << endl;
-        int tempsocket;
-        if ((tempsocket = accept(server_filedescriptor, (struct sockaddr *)&mysocketaddress, (socklen_t *)&addresslength)) < 0)
+        if ((mytempsocket = accept(server_filedescriptor, (struct sockaddr *)&mysocketaddress, (socklen_t *)&addresslength)) < 0)
         {
             perror("Error occured in accept");
             exit(EXIT_FAILURE);
         }
-        cout << "after accepting " << endl;
-        if(fork() == 0)
-        {
-            acceptUser(tempsocket);
-            cout << "CHILD EXITS" << endl;
-            exit(EXIT_SUCCESS);
-        }
-    cout << "PARENT after forking now im ready again " << endl;
+        thread mythread (&ServerHelper::acceptUser, this);
+        mythread.detach();
 
+        cout << "PARENT after threading  now im ready again " << endl;
     }
     close(server_filedescriptor);
 }
@@ -118,36 +71,37 @@ void ServerHelper::sendresponse(void *message, int msglen, int created_socket)
     }
 }
 
-void ServerHelper::acceptUser(int thesocket)
+void ServerHelper::acceptUser()
 {
+
+    int thesocket = this->mytempsocket;
     // seperate process  just called this
     char themessage[256];
     char mymessage[50];
     bzero(mymessage, 256);
     bzero(themessage, 256);
-    strcpy(mymessage,"Server received message");
-    cout << " CHILD inside accept User" << endl;
+    strcpy(mymessage, "Server received message");
     // sendresponse("Hello, world!\n",13,created_socket);
-    while (strcmp(themessage, "quit"))
+    while (strcmp(themessage, "quit\n"))
     { // while exit hasnt been typed in
-            bzero(themessage, 256);
-            if (recv(thesocket, themessage, 255,0) < 0)
-            {
-                perror("Error occured in reading");
-            }
-        
-           // send(thesocket, themessage, strlen(themessage)+1, 0);
-          cout << "Money : " << themessage << endl; 
-          send(thesocket, mymessage, strlen(mymessage) + 1, 0);
-         statechange(themessage);
+        bzero(themessage, 256);
+        if (recv(thesocket, themessage, 255, 0) < 0)
+        {
+            perror("Error occured in reading");
+        }
+
+        // send(thesocket, themessage, strlen(themessage)+1, 0);
+        cout << "Money : " << themessage << endl;
+        send(thesocket, mymessage, strlen(mymessage) + 1, 0);
+        statechange(themessage);
         // communicate(thesocket);
     }
-    
+
     cout << "at the end..." << endl;
     close(thesocket);
 }
-void ServerHelper::statechange(char* message)
+
+void ServerHelper::statechange(char *message)
 {
-
-
 }
+

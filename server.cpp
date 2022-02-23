@@ -6,7 +6,7 @@
  * @info Course COP4635
  */
 // Server side Program 
-/* The port number is passed as an argument */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,8 +15,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include"serverhelper.h"
-// threader Branch
-//change !
 int main(int argc, char *argv[])
 {
 
