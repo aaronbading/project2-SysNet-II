@@ -26,30 +26,37 @@
 #include <sstream>
 #include <fstream>
 #include <cstring>
+#include "user.h"
 using namespace std;
 
 #define PORT 60049 // defining a  port in range 60001 – 60099
-
+#define loggedinstate 3
+#define registerstate 2
 class ServerHelper
 {
 public:
-    ServerHelper(); /*** Initial setup consturctor.*/
-    void start();
-    void sendresponse(void *message, int msglen, int created_socket);
-    void statechange(char* message, int mysocket);
-    void acceptUser();
-    void DisplayMenu(int temp, int choice);
+    ServerHelper();                                                   /*** Initial setup consturctor.*/
+    void start();                                                     // start the process of
+    void sendresponse(void *message, int msglen, int created_socket); // send a response to client
+    int statechange(char *message, int mysocket);                     // change the state of the system ..
+    void acceptUser();                                                // thread function that is called by thread
+    void DisplayMenu(int temp, int choice);                           // depending on what choice is , it will display menu
+    bool usernamecheck(string username);                              // check if username is present
+    bool usernamepasswordcheck(string username, string password);   
+    bool passwordcheck(string password);
+    void loggedinstatechange(char *message, int mysocket);
 
 private:
     int server_filedescriptor, created_socket;
     long readvalue;
     struct sockaddr_in mysocketaddress, clientaddress; // socket address struck defined in in.h
     int addresslength = sizeof(mysocketaddress);
-    char buffer[256];
-    char loginmenu[82];
-    char receivedmessage[56];
-    int mytempsocket;
 
-
+    char loginmenu[82];     // menu display for logging/ registration
+    char connectedmenu[38]; // menu display for connection
+    char newlinemessage[1];
+    char loggedinmenu[174]; // menu display for being logged in
+    int mytempsocket;       // temporary container for socket id
+    vector<User> myusers;
 };
 #endif

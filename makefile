@@ -9,7 +9,7 @@ TARGET1 = client
 TARGET2 = server
 
 CLIENTSOURCES = client.cpp clienthelper.cpp
-SERVERSOURCES = server.cpp serverhelper.cpp
+SERVERSOURCES = server.cpp serverhelper.cpp user.cpp
 
 CLIENTOBJECTS = $(CLIENTSOURCES:.cpp=.o)
 SERVEROBJECTS = $(SERVERSOURCES:.cpp=.o)
@@ -28,4 +28,4 @@ $(TARGET2): $(SERVEROBJECTS)
 clean:
 	
 clobber: clean
-	rm -f $(TARGET1) $(TARGET2) $(TARGET1).o $(TARGET2).o clienthelper.o serverhelper.o
+	rm -f $(TARGET1) $(TARGET2) $(TARGET1).o $(TARGET2).o clienthelper.o serverhelper.o user.o
