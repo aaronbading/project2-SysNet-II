@@ -2,6 +2,7 @@
 #include <string.h>
 ServerHelper::ServerHelper()
 {
+    //** Define some static messages
     bzero(loginmenu, 68);
     strcpy(loginmenu, "\n\n Press 1 to Login \n Press 2 to Register \n Type 'quit' to Quit ");
     bzero(connectedmenu, 38);
@@ -10,6 +11,8 @@ ServerHelper::ServerHelper()
     strcpy(newlinemessage, "\n");
     bzero(loggedinmenu, 174);
     strcpy(loggedinmenu, "\nSuccessfully logged in \n 1. Subscribe to a location \n 2. Unsubscribe from a location \n 3. Change Password \n 4. See all subscriptions for a user \n Type quit to Exit\n\n");
+    // change logged in menu message for part II of this more involved project than once thought .
+
     if ((server_filedescriptor = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
         perror("Error occured in socket");
@@ -59,13 +62,13 @@ void ServerHelper::start()
             exit(EXIT_FAILURE);
         }
         thread mythread(&ServerHelper::acceptUser, this);
-        mythread.detach();
+        mythread.detach(); // this detaches a thread meaning that it does not have to be joined.. the thread gives its resources up automatically
     }
     close(server_filedescriptor);
 }
 
 void ServerHelper::sendresponse(void *message, int msglen, int created_socket)
-{
+{ // this is the sendingrespone method/function
     char *msg = (char *)message;
 
     while (msglen > 0)
@@ -85,8 +88,8 @@ void ServerHelper::acceptUser()
     bzero(receivedmessage, 56);
     int state = 2;
     int thesocket = mytempsocket;
-    DisplayMenu(thesocket, 1);
-    DisplayMenu(thesocket, 2);
+    DisplayMenu(thesocket, 1); // display the connected message
+    DisplayMenu(thesocket, 2); // display the menu
 
     while (strcmp(receivedmessage, "quit\n"))
     { // while exit hasnt been typed in
@@ -112,6 +115,15 @@ void ServerHelper::acceptUser()
         {
             state = statechange(receivedmessage, thesocket);
             DisplayMenu(thesocket, state);
+        }
+    }
+
+    // remove the user that just logged off ..
+    for (long unsigned int i = 0; i < myusers.size(); i++)
+    {
+        if (myusers.at(i).getsocketnumber() == thesocket)
+        {
+            myusers.erase(myusers.begin() + i);
         }
     }
 
@@ -157,10 +169,8 @@ int ServerHelper::statechange(char *message, int mysocket)
     str >> choice;
     switch (choice)
     {
-    case 1: // Login Choice
-        cout << " choice is 1 " << endl;
-        send(mysocket, "Username \n", 12, 0); // prompt username
-
+    case 1:                                     // Login Choice
+        send(mysocket, "Username \n", 12, 0);   // prompt username
         bzero(statechangereceivedusername, 56); // receive message
         if (read(mysocket, statechangereceivedusername, 56) < 0)
         {
@@ -178,17 +188,29 @@ int ServerHelper::statechange(char *message, int mysocket)
         password = statechangereceivedpassword;
         cout << "Password Received" << password << endl;
 
-        // TODO .. check if this is already present ..
         decision = usernamepasswordcheck(username, password); // returns true if the username was indeed present
 
         if (decision)
         { // this means it was  present and password was matched too
+            // here we must push to the vector
+            if (!username.empty())
+            {
+                username.pop_back();
+            }
+            User newuser(username, mysocket);
+            myusers.push_back(newuser);
+            cout << "socket number is " << myusers.at(0).getsocketnumber() << endl;
             return loggedinstate;
         }
-        return registerstate;
+        else
+        {
+            char error[58];
+            bzero(error, 58);
+            strcpy(error, "Incorrect Password or Username , Press Enter to Continue\n");
+            sendresponse(error, 58, mysocket);
+        }
         break;
-    case 2: // Register Choice
-        cout << " choice is 2 " << endl;
+    case 2:                                   // Register Choice
         send(mysocket, "Username \n", 12, 0); // prompt username
 
         bzero(statechangereceivedusername, 56); // receive message
@@ -197,7 +219,6 @@ int ServerHelper::statechange(char *message, int mysocket)
             perror("Error occured in reading");
         }
         username = statechangereceivedusername;
-        cout << "User name Received " << username << endl;
 
         send(mysocket, "Password \n", 12, 0); // prompt password
 
@@ -207,10 +228,6 @@ int ServerHelper::statechange(char *message, int mysocket)
             perror("Error occured in reading");
         }
         password = statechangereceivedpassword;
-        cout << "Password Received " << password << endl;
-
-        // TODO .. Check if username is already present or not .. if not then add it to the file of users...
-
         decision = usernamecheck(username); // returns true if the username was indeed present
 
         if (!decision)
@@ -229,17 +246,14 @@ int ServerHelper::statechange(char *message, int mysocket)
 
             file_out << statechangereceivedusername; // write this to file ..
             file_out.close();
-            cout << " returns logged in " << endl;
         }
         else
         { // username already present .. return not logged in state
-            cout << " returns register state " << endl;
             char error[60];
             bzero(error, 60);
             strcpy(error, "Username is already in the System , Press Enter to Contiue\n");
             sendresponse(error, 60, mysocket);
         }
-
         break;
     default:
         break;
@@ -332,56 +346,25 @@ bool ServerHelper::usernamepasswordcheck(string username, string password)
     else
         return false;
 }
-bool ServerHelper::passwordcheck(string password)
-{
-
-    if (!password.empty()) // delete the endline character
-        password.pop_back();
-    // READING FILE
-    bool passwordtoggle = false;
-
-    vector<string> lines;
-    string line;
-    ifstream input_file("users.txt");
-    if (!input_file.is_open()) // see if file is open
-    {
-        cerr << "Could not open the file - '"
-             << "users.txt "
-             << "'" << endl;
-        return EXIT_FAILURE;
-    }
-
-    while (getline(input_file, line)) // get all the lines in file
-    {
-        lines.push_back(line);
-    }
-
-    for (const auto &i : lines) // go through each line and look at the username ..
-    {
-        stringstream s(i);
-        string word;
-        while (s >> word)
-        {
-
-            if (word == password)
-            {
-                passwordtoggle = true;
-            }
-        }
-    }
-    return passwordtoggle;
-}
 void ServerHelper::loggedinstatechange(char *message, int mysocket)
 {
+    vector<string> subscriptions;
+    vector<string> locations;
     char statechangereceivedpassword[56];
     char statechangereceivedusername[56];
     char statechangenewpassword[56];
+    char whichuser[20];
+    char location[20];
+    char custommessage[custommessagesize];
 
-    bzero(statechangereceivedpassword, 56); // receive message
-    bzero(statechangereceivedusername, 56); // receive message
-    bzero(statechangenewpassword, 56);      // receive message
+    bzero(statechangereceivedpassword, 56);  // receive message
+    bzero(statechangereceivedusername, 56);  // receive message
+    bzero(statechangenewpassword, 56);       // receive message
+    bzero(whichuser, 20);                    // receive message
+    bzero(location, 20);                     // receive message
+    bzero(custommessage, custommessagesize); // receive message
 
-    string username, password, result, newpassword;
+    string username, password, result, newpassword, assembler, temp, usertogetsubs, locationstring;
     bool decision;
 
     stringstream str;
@@ -390,14 +373,93 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
     str >> choice;
     switch (choice)
     {
-    case 0: // Quit
-        break;
     case 1: // Subscribe to a location
-        cout << "subscribe " << endl;
-        break;
-    case 2: // unsubscribe to a location
-        cout << "unsubscribe " << endl;
+        //****
+        send(mysocket, "Username \n", 12, 0);   // prompt username
+        bzero(statechangereceivedusername, 56); // receive message
+        if (read(mysocket, statechangereceivedusername, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        username = statechangereceivedusername;
+        if (!username.empty())
+        {
+            username.pop_back();
+        }
+        send(mysocket, "What location do you want to subscribe to  \n", 45, 0); // prompt username
+        if (read(mysocket, location, 20) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        locationstring = location;
 
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            if (myusers.at(i).getusername() == username)
+            {
+                myusers.at(i).appendlocation(locationstring);
+            }
+        }
+        //***
+        break;
+    case 2:                                     // unsubscribe to a location
+        send(mysocket, "Username \n", 12, 0);   // prompt username
+        bzero(statechangereceivedusername, 56); // receive message
+        if (read(mysocket, statechangereceivedusername, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        username = statechangereceivedusername;
+        if (!username.empty())
+        {
+            username.pop_back();
+        }
+        //*************
+        send(mysocket, "What location do you want to Unsubscribe to  \n", 47, 0); // prompt username
+
+        bzero(custommessage, custommessagesize);
+        assembler = "What location do you want to Unsubscribe to  \n\n";
+        temp.clear();
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            if (myusers.at(i).getusername() == username)
+            {
+                locations = myusers.at(i).getlocations();
+            }
+        }
+        for (long unsigned int i = 0; i < locations.size(); i++)
+        {
+            assembler += locations.at(i);
+            assembler += "\n";
+        }
+        assembler += "\n";
+
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }
+
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+        bzero(custommessage, custommessagesize);                 // CLEAR CUSTOM MESSAGE
+        assembler.clear();                                       // CLEAR ASSEMBLER
+        assembler = "\n";
+
+        if (read(mysocket, location, 20) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        locationstring = location;
+
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            if (myusers.at(i).getusername() == username)
+            {
+                myusers.at(i).removelocation(locationstring);
+            }
+        }
         break;
     case 3: // Change Password
         //**
@@ -441,12 +503,22 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
             ofstream temp;
             temp.open("temp.txt");
             string mycopy;
+            if (!username.empty())
+                username.pop_back();
+
             while (getline(input__file, myline))
             {
 
                 if (myline.substr(0, username.size()).c_str() != username)
                 {
+                    cout << "writing my line to file : " << myline << endl;
+                    cout << "  username is  " << username << endl;
+
                     temp << myline << endl;
+                }
+                else
+                {
+                    cout << "not writing to file  username is  " << username << endl;
                 }
             }
             input__file.close();
@@ -474,6 +546,70 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
     case 4: // See all subscriptions for a given user .
         cout << " see subscriptions " << endl;
 
+        bzero(custommessage, custommessagesize);
+        assembler = "ONLINE USERS BY USERNAME : \n";
+        temp.clear();
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            temp = myusers.at(i).getusername();
+            // if (!temp.empty())
+            // {
+            //     temp.pop_back();
+            // }
+
+            assembler += temp;
+            assembler += " \n";
+            temp.clear();
+        }
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }
+
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+        bzero(custommessage, custommessagesize);                 // CLEAR CUSTOM MESSAGE
+        assembler.clear();                                       // CLEAR ASSEMBLER
+        assembler = "\n";
+        if (read(mysocket, whichuser, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        usertogetsubs = whichuser; // RECEIVED USERNAME THAT WE WANT TO KNOW SUBSCRIPTIONS OF
+        if (!usertogetsubs.empty())
+        {
+            usertogetsubs.pop_back();
+        }
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            if (myusers.at(i).getusername() == usertogetsubs)
+            {
+                cout << "success " << endl;
+                subscriptions = myusers.at(i).getlocations();
+            }
+        } // ASSIGNED THE RIGHT VECTOR OF LOCATIONS NOW
+
+        for (long unsigned int i = 0; i < subscriptions.size(); i++)
+        {
+            assembler += subscriptions.at(i);
+        } // APPEND THAT TO THE ASSEMBLER STRING
+        for (; subscriptions.size() != 0;)
+        {
+            subscriptions.erase(subscriptions.begin());
+        } // CLEAR THE SUBSCRIPTIONS VECTOR AS IT IS NOT NEEDED ANYMORE
+
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }                                                        // ASSIGN THE MESSAGE AGAIN
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+        break;
+    case 5: // ... more cases here for part II ... to be continued (;
         break;
     default:
         break;

@@ -32,6 +32,8 @@ using namespace std;
 #define PORT 60049 // defining a  port in range 60001 – 60099
 #define loggedinstate 3
 #define registerstate 2
+#define custommessagesize 500
+
 class ServerHelper
 {
 public:
@@ -43,7 +45,6 @@ public:
     void DisplayMenu(int temp, int choice);                           // depending on what choice is , it will display menu
     bool usernamecheck(string username);                              // check if username is present
     bool usernamepasswordcheck(string username, string password);   
-    bool passwordcheck(string password);
     void loggedinstatechange(char *message, int mysocket);
 
 private:
