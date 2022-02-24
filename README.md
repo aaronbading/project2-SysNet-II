@@ -1,5 +1,5 @@
 # project2-SysNet-II
-TCP Weather station with communcation
+TCP Weather station. Part A. 
 This is a two in one c++ program that includes a multithreaded server and a client that is able to log into the server. The server is able to handle multiple clients at once and is able to handle their requests simultaneously with multiple threads
 
 ## How to use
