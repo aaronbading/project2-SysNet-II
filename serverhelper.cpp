@@ -83,7 +83,7 @@ void ServerHelper::sendresponse(void *message, int msglen, int created_socket)
 
 // thread function ..
 void ServerHelper::acceptUser()
-{ // thread function
+{
     char receivedmessage[56];
     bzero(receivedmessage, 56);
     int state = 2;
@@ -162,11 +162,11 @@ int ServerHelper::statechange(char *message, int mysocket)
     char statechangereceivedpassword[56];
     string username, password;
     bool decision;
-    // convert the message to an int.
+
     stringstream str;
     str << message;
     int choice;
-    str >> choice;
+    str >> choice; // convert the message to an int with stringstreams .
     switch (choice)
     {
     case 1:                                     // Login Choice
@@ -203,7 +203,7 @@ int ServerHelper::statechange(char *message, int mysocket)
             return loggedinstate;
         }
         else
-        {
+        {// return wrong password 
             char error[58];
             bzero(error, 58);
             strcpy(error, "Incorrect Password or Username , Press Enter to Continue\n");
@@ -357,12 +357,12 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
     char location[20];
     char custommessage[custommessagesize];
 
-    bzero(statechangereceivedpassword, 56);  // receive message
-    bzero(statechangereceivedusername, 56);  // receive message
-    bzero(statechangenewpassword, 56);       // receive message
-    bzero(whichuser, 20);                    // receive message
-    bzero(location, 20);                     // receive message
-    bzero(custommessage, custommessagesize); // receive message
+    bzero(statechangereceivedpassword, 56);  //clear them ? most likely unnecessary actually 
+    bzero(statechangereceivedusername, 56);  
+    bzero(statechangenewpassword, 56);       
+    bzero(whichuser, 20);                    
+    bzero(location, 20);                    
+    bzero(custommessage, custommessagesize); 
 
     string username, password, result, newpassword, assembler, temp, usertogetsubs, locationstring;
     bool decision;

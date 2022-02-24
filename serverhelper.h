@@ -15,9 +15,6 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <ctype.h>
-//#include <sys/types.h>
-//#include <fcntl.h>
-//#include <sys/sendfile.h>
 #include <sys/stat.h>
 #include <thread>
 #include <vector>
@@ -29,23 +26,23 @@
 #include "user.h"
 using namespace std;
 
-#define PORT 60049 // defining a  port in range 60001 – 60099
-#define loggedinstate 3
-#define registerstate 2
-#define custommessagesize 500
+#define PORT 60049            // defining a  port in range 60001 – 60099
+#define loggedinstate 3       // state when a given user is logged in
+#define registerstate 2       // state when a given user is not logged in 
+#define custommessagesize 500 // size of custom message 
 
 class ServerHelper
 {
 public:
-    ServerHelper();                                                   /*** Initial setup consturctor.*/
-    void start();                                                     // start the process of
-    void sendresponse(void *message, int msglen, int created_socket); // send a response to client
-    int statechange(char *message, int mysocket);                     // change the state of the system ..
-    void acceptUser();                                                // thread function that is called by thread
-    void DisplayMenu(int temp, int choice);                           // depending on what choice is , it will display menu
-    bool usernamecheck(string username);                              // check if username is present
-    bool usernamepasswordcheck(string username, string password);   
-    void loggedinstatechange(char *message, int mysocket);
+    ServerHelper();                                                   ///*** Initial setup consturctor.
+    void start();                                                     ///*** start the process of
+    void sendresponse(void *message, int msglen, int created_socket); ///*** send a response to client
+    int statechange(char *message, int mysocket);                     ///*** change the state of the system ..
+    void acceptUser();                                                ///*** thread function that is called by thread
+    void DisplayMenu(int temp, int choice);                           ///*** depending on what choice is , it will display menu
+    bool usernamecheck(string username);                              ///*** check if username is present
+    bool usernamepasswordcheck(string username, string password);     ///*** check if username and password is present
+    void loggedinstatechange(char *message, int mysocket);            ///*** change the state of the system ..while logged in 
 
 private:
     int server_filedescriptor, created_socket;
@@ -55,9 +52,9 @@ private:
 
     char loginmenu[82];     // menu display for logging/ registration
     char connectedmenu[38]; // menu display for connection
-    char newlinemessage[1];
+    char newlinemessage[1]; // random newline character 
     char loggedinmenu[174]; // menu display for being logged in
     int mytempsocket;       // temporary container for socket id
-    vector<User> myusers;
+    vector<User> myusers;   // vector of users
 };
 #endif

@@ -26,21 +26,22 @@
 
 using namespace std;
 
-#define PORT 60049 // defining a  port in range 60001 – 60099
+#define PORT 60049                  // defining a  port in range 60001 – 60099
+#define inputoutputbuffersize 500   // defining a  port in range 60001 – 60099
 
 class ClientHelper
 {
 public:
-    ClientHelper(); /*** Initial setup consturctor.*/
-    void connection();
-    void sendData();
-    void receive();
+    ClientHelper();         /*** Initial setup consturctor.*/
+    void connection();      /*** Create the connection && this is where host name is defined as localhost*/
+    void sendData();        /*** Sends Data To server*/
+    void receive();          /*** Receives Data from server*/
 private:
     int socketfiledescriptor, n;
     struct sockaddr_in server_address;
     struct hostent *server;
-    char inputbuffer[500];
-    char outputbuffer[500];
-    int toggle ;
+    char inputbuffer[inputoutputbuffersize];
+    char outputbuffer[inputoutputbuffersize];
+    int toggle;
 };
 #endif
