@@ -63,6 +63,8 @@ void ServerHelper::start()
         }
         thread mythread(&ServerHelper::acceptUser, this);
         mythread.detach(); // this detaches a thread meaning that it does not have to be joined.. the thread gives its resources up automatically
+            cout << "Client Connected" << endl;
+
     }
     close(server_filedescriptor);
 }
@@ -99,9 +101,7 @@ void ServerHelper::acceptUser()
             perror("Error occured in reading");
         }
 
-        // send(thesocket, receivedmessage, strlen(receivedmessage)+1, 0); // echo the message
-        cout << "Received message from socket :  " << thesocket << " is " << receivedmessage << endl;
-        // send(thesocket, mymessage, strlen(mymessage) + 1, 0);
+        //cout << "Received message from socket :  " << thesocket << " is " << receivedmessage << endl;
 
         if (!strcmp(receivedmessage, "quit\n"))
             break;
@@ -177,7 +177,7 @@ int ServerHelper::statechange(char *message, int mysocket)
             perror("Error occured in reading");
         }
         username = statechangereceivedusername;
-        cout << "User name Received " << username << endl;
+        //cout << "User name Received " << username << endl;
 
         send(mysocket, "Password \n", 12, 0);   // prompt password
         bzero(statechangereceivedpassword, 56); // receive message
@@ -186,7 +186,7 @@ int ServerHelper::statechange(char *message, int mysocket)
             perror("Error occured in reading");
         }
         password = statechangereceivedpassword;
-        cout << "Password Received" << password << endl;
+       // cout << "Password Received" << password << endl;
 
         decision = usernamepasswordcheck(username, password); // returns true if the username was indeed present
 
@@ -199,7 +199,7 @@ int ServerHelper::statechange(char *message, int mysocket)
             }
             User newuser(username, mysocket);
             myusers.push_back(newuser);
-            cout << "socket number is " << myusers.at(0).getsocketnumber() << endl;
+            //cout << "socket number is " << myusers.at(0).getsocketnumber() << endl;
             return loggedinstate;
         }
         else
@@ -511,15 +511,10 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
 
                 if (myline.substr(0, username.size()).c_str() != username)
                 {
-                    cout << "writing my line to file : " << myline << endl;
-                    cout << "  username is  " << username << endl;
-
+    
                     temp << myline << endl;
                 }
-                else
-                {
-                    cout << "not writing to file  username is  " << username << endl;
-                }
+              
             }
             input__file.close();
             temp.close();
@@ -544,7 +539,6 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
 
         break;
     case 4: // See all subscriptions for a given user .
-        cout << " see subscriptions " << endl;
 
         bzero(custommessage, custommessagesize);
         assembler = "ONLINE USERS BY USERNAME : \n";
@@ -586,7 +580,6 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
         {
             if (myusers.at(i).getusername() == usertogetsubs)
             {
-                cout << "success " << endl;
                 subscriptions = myusers.at(i).getlocations();
             }
         } // ASSIGNED THE RIGHT VECTOR OF LOCATIONS NOW

@@ -35,7 +35,7 @@ public:
     ClientHelper();         /*** Initial setup consturctor.*/
     void connection();      /*** Create the connection && this is where host name is defined as localhost*/
     void sendData();        /*** Sends Data To server*/
-    void receive();          /*** Receives Data from server*/
+    void receive();         /*** Receives Data from server*/
 private:
     int socketfiledescriptor, n;
     struct sockaddr_in server_address;
