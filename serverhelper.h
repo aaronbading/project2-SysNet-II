@@ -53,8 +53,9 @@ private:
     char loginmenu[82];     // menu display for logging/ registration
     char connectedmenu[38]; // menu display for connection
     char newlinemessage[1]; // random newline character 
-    char loggedinmenu[174]; // menu display for being logged in
+    char loggedinmenu[307]; // menu display for being logged in
     int mytempsocket;       // temporary container for socket id
     vector<User> myusers;   // vector of users
+    vector<string> last10messages;
 };
 #endif

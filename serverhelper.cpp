@@ -1,5 +1,29 @@
 #include "serverhelper.h"
 #include <string.h>
+//TODO   :: change name of the see all the locatiosn you are subscribed to -> of a given user. 
+//*************************
+// SEND A GROUP MESSAGE     < NEEDS DONE >
+// Gather up all locations .. -> go through all online users and gather up all locations
+//remove duplicates
+//display all locations..
+//Get What location the message goes to
+//What is the message ?  -> Message   -> pushback(messages)
+//Gather all users that have are subscribed to this location ..
+// Send message to each one of those users ........ for loop .. 
+
+//*************************
+// SEND A PRIVATE MESSAGE   < DONE  >  NOT TESTED
+//Display online users ..  < CHECK > 
+//Get what user the message is sent to -> Socket Number  < Check > 
+//What is the message ?  -> Message   -> pushback(messages)  < check > 
+//Send message to relavent SocketNumber  < check >
+
+//*************************
+// SEE ALL ONLINE USERS     <  CHECK >
+// SEE THE LAST 10 MESSAGES .. < CHECK  >  NOT TESTED
+// Simply display the vector of previous messages that has been kept track of . 
+
+//*************************
 ServerHelper::ServerHelper()
 {
     //** Define some static messages
@@ -9,8 +33,8 @@ ServerHelper::ServerHelper()
     strcpy(connectedmenu, "Connected , Press enter to continue\n");
     bzero(newlinemessage, 1);
     strcpy(newlinemessage, "\n");
-    bzero(loggedinmenu, 174);
-    strcpy(loggedinmenu, "\nSuccessfully logged in \n 1. Subscribe to a location \n 2. Unsubscribe from a location \n 3. Change Password \n 4. See all subscriptions for a user \n Type quit to Exit\n\n");
+    bzero(loggedinmenu, 307);
+    strcpy(loggedinmenu,"\nSuccessfully logged in \n 1. Subscribe to a location \n 2. Unsubscribe from a location \n 3. Send a message to a location \n 4. Send a Private Message \n 5. See all the locations you are subscribed to \n 6. See all the online Users \n 7. See last 10 messages \n 8. Change Password \n Type quit to Exit\n\n");
     // change logged in menu message for part II of this more involved project than once thought .
 
     if ((server_filedescriptor = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -149,7 +173,7 @@ void ServerHelper::DisplayMenu(int temp, int choice)
         break;
     case 3:
         // this will have to be the next menu.
-        sendresponse(loggedinmenu, 174, temp);
+        sendresponse(loggedinmenu, 307, temp);
         break;
     default:
         break;
@@ -366,6 +390,7 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
 
     string username, password, result, newpassword, assembler, temp, usertogetsubs, locationstring;
     bool decision;
+    int socketforprivate;
 
     stringstream str;
     str << message;
@@ -461,8 +486,174 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
             }
         }
         break;
-    case 3: // Change Password
-        //**
+    case 3: //SEND A MESSAGE TO A LOCATION
+
+        break;
+    case 4: //Send a private message
+  // display all online users 
+        bzero(custommessage, custommessagesize);
+        assembler = "Which User would you like to message?? \n ONLINE USERS BY USERNAME : \n";
+        temp.clear();
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            temp = myusers.at(i).getusername();
+        
+            assembler += temp;
+            assembler += " \n";
+            temp.clear();
+        }
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }
+
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+        bzero(custommessage, custommessagesize);                 // CLEAR CUSTOM MESSAGE
+        assembler.clear();
+        assembler = "\n";
+        if (read(mysocket, whichuser, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        usertogetsubs = whichuser; // RECEIVED USERNAME THAT WE WANT TO KNOW SUBSCRIPTIONS OF
+        if (!usertogetsubs.empty())
+        {
+            usertogetsubs.pop_back();
+        }
+
+         for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            temp = myusers.at(i).getusername();
+        
+           if(myusers.at(i).getusername() == usertogetsubs)
+           {
+               socketforprivate = myusers.at(i).getsocketnumber();
+           }
+        }
+
+        send(mysocket, "What shall be the message \n", 30, 0);   // prompt message
+        bzero(statechangereceivedusername, 56); // receive message
+        username.clear();
+        if (read(mysocket, statechangereceivedusername, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        username = statechangereceivedusername;
+        last10messages.push_back(username);
+        sendresponse(statechangereceivedusername,strlen(statechangereceivedusername) , socketforprivate);
+
+        break;
+    case 5: //See all the locations you are subscribed to ... I dont think im implimenting this option .. maybe .. 
+         bzero(custommessage, custommessagesize);
+        assembler = "ONLINE USERS BY USERNAME : \n";
+        temp.clear();
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            temp = myusers.at(i).getusername();
+        
+            assembler += temp;
+            assembler += " \n";
+            temp.clear();
+        }
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }
+
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+        bzero(custommessage, custommessagesize);                 // CLEAR CUSTOM MESSAGE
+        assembler.clear();                                       // CLEAR ASSEMBLER
+        assembler = "\n";
+        if (read(mysocket, whichuser, 56) < 0)
+        {
+            perror("Error occured in reading");
+        }
+        usertogetsubs = whichuser; // RECEIVED USERNAME THAT WE WANT TO KNOW SUBSCRIPTIONS OF
+        if (!usertogetsubs.empty())
+        {
+            usertogetsubs.pop_back();
+        }
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            if (myusers.at(i).getusername() == usertogetsubs)
+            {
+                subscriptions = myusers.at(i).getlocations();
+            }
+        } // ASSIGNED THE RIGHT VECTOR OF LOCATIONS NOW
+
+        for (long unsigned int i = 0; i < subscriptions.size(); i++)
+        {
+            assembler += subscriptions.at(i);
+        } // APPEND THAT TO THE ASSEMBLER STRING
+        for (; subscriptions.size() != 0;)
+        {
+            subscriptions.erase(subscriptions.begin());
+        } // CLEAR THE SUBSCRIPTIONS VECTOR AS IT IS NOT NEEDED ANYMORE
+
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }                                                        // ASSIGN THE MESSAGE AGAIN
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+    break;
+    case 6: // see all online users
+      bzero(custommessage, custommessagesize);
+        assembler = "ONLINE USERS BY USERNAME : \n";
+        temp.clear();
+        for (long unsigned int i = 0; i < myusers.size(); i++)
+        {
+            temp = myusers.at(i).getusername();
+        
+            assembler += temp;
+            assembler += " \n";
+            temp.clear();
+        }
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }
+
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+        bzero(custommessage, custommessagesize);                 // CLEAR CUSTOM MESSAGE
+        assembler.clear();                                       // CLEAR ASSEMBLER
+
+    break;
+    case 7: // see last 10 messages 
+        bzero(custommessage, custommessagesize);
+        assembler = "Last 10 messages that were sent : \n";
+        temp.clear();
+        for (long unsigned int i = 0; i < last10messages.size(); i++)
+        {
+            temp = last10messages.at(i);
+        
+            assembler += temp;
+            assembler += " \n";
+            temp.clear();
+        }
+        if (assembler.size() < custommessagesize + 1)
+        {
+            for (long unsigned int i = 0; i < assembler.size(); i++)
+            {
+                custommessage[i] = assembler.at(i);
+            }
+        }
+
+        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
+    break;
+    case 8: // change password 
+     //**
         send(mysocket, "Username \n", 12, 0);   // prompt username
         bzero(statechangereceivedusername, 56); // receive message
         if (read(mysocket, statechangereceivedusername, 56) < 0)
@@ -536,74 +727,8 @@ void ServerHelper::loggedinstatechange(char *message, int mysocket)
             file_out << statechangereceivedusername; // write this to file ..
             file_out.close();
         }
+    break;
 
-        break;
-    case 4: // See all subscriptions for a given user .
-
-        bzero(custommessage, custommessagesize);
-        assembler = "ONLINE USERS BY USERNAME : \n";
-        temp.clear();
-        for (long unsigned int i = 0; i < myusers.size(); i++)
-        {
-            temp = myusers.at(i).getusername();
-            // if (!temp.empty())
-            // {
-            //     temp.pop_back();
-            // }
-
-            assembler += temp;
-            assembler += " \n";
-            temp.clear();
-        }
-        if (assembler.size() < custommessagesize + 1)
-        {
-            for (long unsigned int i = 0; i < assembler.size(); i++)
-            {
-                custommessage[i] = assembler.at(i);
-            }
-        }
-
-        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
-        bzero(custommessage, custommessagesize);                 // CLEAR CUSTOM MESSAGE
-        assembler.clear();                                       // CLEAR ASSEMBLER
-        assembler = "\n";
-        if (read(mysocket, whichuser, 56) < 0)
-        {
-            perror("Error occured in reading");
-        }
-        usertogetsubs = whichuser; // RECEIVED USERNAME THAT WE WANT TO KNOW SUBSCRIPTIONS OF
-        if (!usertogetsubs.empty())
-        {
-            usertogetsubs.pop_back();
-        }
-        for (long unsigned int i = 0; i < myusers.size(); i++)
-        {
-            if (myusers.at(i).getusername() == usertogetsubs)
-            {
-                subscriptions = myusers.at(i).getlocations();
-            }
-        } // ASSIGNED THE RIGHT VECTOR OF LOCATIONS NOW
-
-        for (long unsigned int i = 0; i < subscriptions.size(); i++)
-        {
-            assembler += subscriptions.at(i);
-        } // APPEND THAT TO THE ASSEMBLER STRING
-        for (; subscriptions.size() != 0;)
-        {
-            subscriptions.erase(subscriptions.begin());
-        } // CLEAR THE SUBSCRIPTIONS VECTOR AS IT IS NOT NEEDED ANYMORE
-
-        if (assembler.size() < custommessagesize + 1)
-        {
-            for (long unsigned int i = 0; i < assembler.size(); i++)
-            {
-                custommessage[i] = assembler.at(i);
-            }
-        }                                                        // ASSIGN THE MESSAGE AGAIN
-        sendresponse(custommessage, assembler.size(), mysocket); // SEND THE ONLINE USERS
-        break;
-    case 5: // ... more cases here for part II ... to be continued (;
-        break;
     default:
         break;
     }
